@@ -14,3 +14,16 @@ router.get('/', async () => {
     hello: 'world',
   }
 })
+
+router.post('/upload-document', async ({ request, response }) => {
+  const file = request.file('file')
+  if (!file) {
+    return response.status(400).json({ error: 'File is required' })
+  }
+  return {
+    success: true,
+    fileName: file.clientName,
+    size: file.size,
+    type: file.type,
+  }
+})
