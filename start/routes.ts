@@ -8,6 +8,8 @@
 */
 
 import router from '@adonisjs/core/services/router'
+import DocumentsController from '#controllers/documents_controller'
+import type { HttpContext } from '@adonisjs/core/http'
 
 router.get('/', async () => {
   return {
@@ -20,10 +22,6 @@ router.post('/upload-document', async ({ request, response }) => {
   if (!file) {
     return response.status(400).json({ error: 'File is required' })
   }
-  return {
-    success: true,
-    fileName: file.clientName,
-    size: file.size,
-    type: file.type,
-  }
+  const controller = new DocumentsController()
+  return await controller.upload({ request, response } as HttpContext)
 })
