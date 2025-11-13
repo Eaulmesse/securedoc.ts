@@ -54,3 +54,26 @@ router.put('/users/:id', async (ctx) => {
 router.delete('/users/:id', async (ctx) => {
   return usersController.destroy(ctx)
 })
+
+// Routes CRUD pour les documents
+const documentsController = new DocumentsController()
+
+// Récupérer tous les documents
+router.get('/documents', async (ctx) => {
+  return documentsController.index(ctx)
+})
+
+// Récupérer un document par son ID
+router.get('/documents/:id', async (ctx) => {
+  return documentsController.show(ctx)
+})
+
+// Mettre à jour un document existant
+router.put('/documents/:id', async (ctx) => {
+  return documentsController.update(ctx)
+})
+
+// Supprimer un document
+router.delete('/documents/:id', async (ctx) => {
+  return documentsController.destroy(ctx)
+})

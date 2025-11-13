@@ -8,6 +8,95 @@ import { BelongsTo } from '@adonisjs/lucid/types/relations';
 
 
 export default class DocumentsController {
+    /**
+     * Récupérer tous les documents
+     */
+    public async index({ response }: HttpContext) {
+        try {
+            const documents = await Document.query().preload('user')
+            return response.ok(documents)
+        } catch (error) {
+            return response.internalServerError({ 
+                message: 'Erreur lors de la récupération des documents', 
+                error: error.message 
+            })
+        }
+    }
+
+    /**
+     * Récupérer un document par son ID
+     */
+    public async show({ params, response }: HttpContext) {
+        try {
+            const document = await Document.query()
+                .where('id', params.id)
+                .preload('user')
+                .first()
+
+            if (!document) {
+                return response.notFound({ message: 'Document non trouvé' })
+            }
+
+            return response.ok(document)
+        } catch (error) {
+            return response.internalServerError({ 
+                message: 'Erreur lors de la récupération du document', 
+                error: error.message 
+            })
+        }
+    }
+
+    /**
+     * Mettre à jour un document existant
+     */
+    public async update({ params, request, response }: HttpContext) {
+        try {
+            const document = await Document.find(params.id)
+            if (!document) {
+                return response.notFound({ message: 'Document non trouvé' })
+            }
+            
+            const data = request.only(['fileName'])
+            
+            if (data.fileName) {
+                document.fileName = data.fileName
+            }
+            
+            await document.save()
+            
+            return response.ok(document)
+        } catch (error) {
+            return response.internalServerError({ 
+                message: 'Erreur lors de la mise à jour du document', 
+                error: error.message 
+            })
+        }
+    }
+
+    /**
+     * Supprimer un document
+     */
+    public async destroy({ params, response }: HttpContext) {
+        try {
+            const document = await Document.find(params.id)
+            if (!document) {
+                return response.notFound({ message: 'Document non trouvé' })
+            }
+            
+            // Supprimer le fichier physique
+            await this.cleanupDocuments(document.filePath)
+            
+            // Supprimer l'enregistrement dans la base de données
+            await document.delete()
+            
+            return response.ok({ message: 'Document supprimé avec succès' })
+        } catch (error) {
+            return response.internalServerError({ 
+                message: 'Erreur lors de la suppression du document', 
+                error: error.message 
+            })
+        }
+    }
     public async upload ({ request, response }: HttpContext) {
         try {
             const document = request.file('file', {
@@ -28,7 +117,7 @@ export default class DocumentsController {
                 overwrite: true,
             });
 
-            if (!document.hasErrors) {
+            if (document.hasErrors) {
                 return response.internalServerError('Failed to upload document');
             }
 
