@@ -10,7 +10,9 @@
 import router from '@adonisjs/core/services/router'
 import DocumentsController from '#controllers/documents_controller'
 import UsersController from '#controllers/users_controller'
+import AuthController from '#controllers/auth_controller'
 import type { HttpContext } from '@adonisjs/core/http'
+import { middleware } from '#start/kernel'
 
 router.get('/', async () => {
   return {
@@ -77,3 +79,29 @@ router.put('/documents/:id', async (ctx) => {
 router.delete('/documents/:id', async (ctx) => {
   return documentsController.destroy(ctx)
 })
+
+// Routes d'authentification
+const authController = new AuthController()
+
+// Inscription
+router.post('/auth/register', async (ctx: HttpContext) => {
+  return authController.register(ctx)
+})
+
+// Connexion
+router.post('/auth/login', async (ctx: HttpContext) => {
+  return authController.login(ctx)
+})
+
+// Groupe de routes authentifiées
+router.group(() => {
+  // Déconnexion
+  router.post('/logout', async (ctx: HttpContext) => {
+    return authController.logout(ctx)
+  })
+
+  // Récupération des informations de l'utilisateur connecté
+  router.get('/me', async (ctx: HttpContext) => {
+    return authController.me(ctx)
+  })
+}).prefix('/auth').middleware([middleware.auth()])
